@@ -71,22 +71,27 @@ self.addEventListener('message', (event) => {
 
 // Any other custom service worker logic can go here.
 
-self.addEventListener('fetch', (event) => {
-  const {request} = event;
 
-  //Only handles API calls
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+
   if(request.url.includes('/api/data')) {
     event.respondWith(
-      caches.open('api-cache-v1').then((cache) => {
-        return fetch(request)
-          .then((response) => {
-          //Save a copy in cache
-            cache.put(request, response.clone());
-            return response;
-          })
-          .catch(() => {
-            //If network fails, return cached response
-          });
+      caches.open('api-cache-v1').then(async (cache) => {
+        try {
+          const response = await fetch(request);
+          cache.put(request, response.clone());
+          return response;
+        } catch (err) {
+          const cached = await cache.match(request);
+          if (cached) return cached;
+
+          // Optional fallback if cache is empty
+          return new Response(
+            JSON.stringify({ error: 'Network unavailable' }),
+            { headers: { 'Content-Type': 'application/json' }, status: 503 }
+          );
+        }
       })
     );
   }
