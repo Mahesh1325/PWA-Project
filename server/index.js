@@ -12,7 +12,7 @@ app.use(express.json());
 
 //Simple API
 app.get('/api/data', (req, res) => {
-    res.json({message: 'Hello from Backend', timestamp: Date.now()})
+    res.json({message: 'Hello from Backend'})
 });
 
 app.listen(PORT, () => {console.log(`Server running on http://localhost:${PORT}`);
