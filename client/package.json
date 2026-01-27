@@ -7,7 +7,7 @@
     "cra-template-pwa": "2.0.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "web-vitals": "^5.1.0"
   },
   "scripts": {
