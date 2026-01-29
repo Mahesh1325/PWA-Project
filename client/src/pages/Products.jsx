@@ -24,6 +24,7 @@ export default function Products() {
     <div style={{ padding: 20 }}>
       <h2>All Products</h2>
       <button onClick={() => navigate('/addproduct')}>Add Product</button>
+      <button onClick={() => navigate('/')}>Home</button>
       <table border="1" cellPadding="10" style={{ marginTop: 20 }}>
         <thead>
           <tr>
@@ -40,7 +41,7 @@ export default function Products() {
               <td>{p.price}</td>
               <td>{p.image}</td>
               <td>
-                <button onClick={() => navigate(`/editproduct/${p._id}`)}>Edit</button>
+                <button onClick={() => navigate(`/edit-product/${p._id}`)}>Edit</button>
                 <button onClick={() => handleDelete(p._id)}>Delete</button>
               </td>
             </tr>

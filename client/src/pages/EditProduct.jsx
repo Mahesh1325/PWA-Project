@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+/**import React, { useState, useEffect } from 'react';
 import { getProducts, updateProduct } from '../api';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -45,6 +45,75 @@ export default function EditProduct() {
           <input value={image} onChange={e => setImage(e.target.value)} />
         </div>
         <button type="submit">Update</button>
+      </form>
+    </div>
+  );
+}*/
+import React, { useEffect, useState } from 'react';
+import { getProductById, updateProduct } from '../api';
+import { useParams, useNavigate } from 'react-router-dom';
+
+export default function EditProduct() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [image, setImage] = useState('');
+
+  useEffect(() => {
+    loadProduct();
+  }, []);
+
+  const loadProduct = async () => {
+    const res = await getProductById(id);
+    setName(res.data.name);
+    setPrice(res.data.price);
+    setImage(res.data.image || '');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await updateProduct(id, { name, price, image });
+    navigate('/products');
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Edit Product</h2>
+
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Name:</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Price:</label>
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Image URL:</label>
+          <input
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+          />
+        </div>
+
+        <button type="submit">Update</button>
+        <button type="button" onClick={() => navigate('/')}>
+          Cancel
+        </button>
       </form>
     </div>
   );

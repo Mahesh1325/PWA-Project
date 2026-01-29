@@ -12,10 +12,11 @@ export default function Home() {
         gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
         gap: "1rem"
       }}>
-        <button onClick={() => navigate("/add")}>Add Product</button>
+        <button onClick={() => navigate("/addproduct")}>Add Product</button>
         <button onClick={() => navigate("/products")}>View Products</button>
-        <button onClick={() => navigate("/edit/1")}>Edit Product</button>
-        <button onClick={() => navigate("/delete/1")}>Delete Product</button>
+        {/* <button onClick={() => navigate("/editproduct")}>Edit Product</button>
+        <button onClick={() => navigate("/delete/1")}>Delete Product</button> */}
+        <button onClick={() => navigate('/search')}>Search Products</button>      
       </div>
     </div>
   );
