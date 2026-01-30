@@ -24,20 +24,15 @@ export default function DeleteProduct() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="container">
       <h2>Delete Product</h2>
 
       <button onClick={() => navigate('/')}>Home</button>
 
       {products.map((p) => (
-        <div key={p._id} style={{ margin: '10px 0' }}>
+        <div key={p._id} className="mb-10">
           <b>{p.name}</b> - ₹{p.price}
-          <button
-            onClick={() => handleDelete(p._id)}
-            style={{ marginLeft: 10 }}
-          >
-            Delete
-          </button>
+          <button className="ml-10" onClick={() => handleDelete(p._id)}>Delete</button>
         </div>
       ))}
     </div>

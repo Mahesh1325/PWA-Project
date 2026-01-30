@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import Products from './pages/Products';
+import ViewProducts from './pages/ViewProducts';
 import AddProduct from './pages/AddProduct';
 import EditProduct from './pages/EditProduct';
-import DeleteProduct from './pages/DeleteProduct';
+import ManageProducts from './pages/ManageProducts';
 import Search from './pages/Search';
 
 export default function App() {
@@ -12,11 +12,12 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/products" element={<Products />} />
+        <Route path="/products" element={<ViewProducts />} />
         <Route path="/addproduct" element={<AddProduct />} />
-        <Route path="/edit-product/:id" element={<EditProduct />} />
-        <Route path="/delete-product" element={<DeleteProduct />} />
+        <Route path="/manage" element={<ManageProducts />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/edit-product/:id" element={<EditProduct />} />
+    
       </Routes>
     </Router>
   );
