@@ -14,7 +14,7 @@ import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
 
 const API_CACHE_VERSION = 'v3';
-const API_CACHE_NAME = `api-cache-${API_CACHE_VERSION}`;
+ add .API_CACHE_VERSION
 
 clientsClaim();
 self.skipWaiting();
@@ -112,28 +112,70 @@ self.addEventListener('message', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Only handle GET API requests to our backend
+  // Only handle GET API requests to our backend for products
   if (request.method === 'GET' && request.url.includes('/api/products')) {
-    event.respondWith(
-      caches.open(API_CACHE_NAME).then(async (cache) => {
+    event.respondWith((async () => {
+      // Two-stage cache strategy: api-cache-0 (initial), api-cache-1 (promoted)
+      const cache0 = 'api-cache-v0';
+      const cache1 = 'api-cache-   v1';
+
+      const keys = await caches.keys();
+      const hasCache1 = keys.includes(cache1);
+
+      const fetchAndCache = async (cacheName) => {
+        const response = await fetch(request);
+        const cache = await caches.open(cacheName);
+        cache.put(request, response.clone());
+        return response;
+      };
+
+      // If cache1 exists, use network-first updating cache1
+      if (hasCache1) {
         try {
-          const response = await fetch(request);
-        
-          cache.put(request, response.clone());
-          return response;
+          const resp = await fetchAndCache(cache1);
+          console.log('[SW] Updated api-cache-1 for', request.url);
+          return resp;
         } catch (err) {
-        
-          const cached = await cache.match(request);
-          if (cached) return cached;
-
-
-          return new Response(JSON.stringify({ error: 'Network unavailable' }), {
-            headers: { 'Content-Type': 'application/json' },
-            status: 503,
-          });
+          const cached = await caches.open(cache1).then(c => c.match(request));
+          if (cached) {
+            console.log('[SW] Serving api-cache-1 for', request.url);
+            return cached;
+          }
+          console.log('[SW] No cache1 available and network failed for', request.url);
+          return new Response(JSON.stringify({ error: 'Network unavailable' }), { headers: { 'Content-Type': 'application/json' }, status: 503 });
         }
-      })
-    );
+      }
+
+      // If only cache0 exists, try network and promote to cache1; else serve cache0
+      const hasCache0 = keys.includes(cache0);
+      if (hasCache0) {
+        try {
+          const resp = await fetchAndCache(cache1);
+          console.log('[SW] Promoted api-cache-0 -> api-cache-1 for', request.url);
+          // promote: delete cache0
+          try { await caches.delete(cache0); } catch (e) {}
+          return resp;
+        } catch (err) {
+          const cached = await caches.open(cache0).then(c => c.match(request));
+          if (cached) {
+            console.log('[SW] Serving api-cache-0 (promotion pending) for', request.url);
+            return cached;
+          }
+          console.log('[SW] No cache0 available and network failed for', request.url);
+          return new Response(JSON.stringify({ error: 'Network unavailable' }), { headers: { 'Content-Type': 'application/json' }, status: 503 });
+        }
+      }
+
+      // No caches yet: fetch and store in cache0 (initial cache)
+      try {
+        const r = await fetchAndCache(cache0);
+        console.log('[SW] Wrote initial api-cache-0 for', request.url);
+        return r;
+      } catch (err) {
+        console.log('[SW] Network failed and no caches exist for', request.url);
+        return new Response(JSON.stringify({ error: 'Network unavailable' }), { headers: { 'Content-Type': 'application/json' }, status: 503 });
+      }
+    })());
     return;
   }
 
@@ -150,15 +192,16 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  const allowedCaches = [API_CACHE_NAME];
+  const keep = ['api-cache-0', 'api-cache-1', 'images', 'offline-cache'];
 
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
-          if (!allowedCaches.includes(key)) {
-            return caches.delete(key);
-          }
+          // Keep workbox precache and runtime caches, and our keep list
+          if (key.startsWith('workbox') || keep.includes(key)) return null;
+          // Otherwise delete old api-cache variants or stale caches
+          return caches.delete(key);
         })
       )
     )

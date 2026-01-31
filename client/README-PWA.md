@@ -45,6 +45,11 @@ Testing offline and installation
    - In DevTools -> Network, set "Offline" or throttle to "Offline" and refresh the page.
    - The app should still load (static assets are precached). Navigation should fall back to `/offline.html` when an online request fails.
    - API responses previously cached (GET /api/products) will be served from cache if available.
+    - Cache lifecycle: the service worker uses a two-stage API cache scheme:
+       - `api-cache-0` is created on the first successful fetch of `/api/products` (initial cache).
+       - On a subsequent successful fetch the worker promotes the data to `api-cache-1` (the promoted cache).
+       - When offline the worker will prefer `api-cache-1` if present, otherwise fall back to `api-cache-0`.
+       - This promotion strategy ensures an initial cached copy is available quickly, and a promoted stable cache is used afterwards.
 4. To test installability:
    - On desktop, use the install icon in the address bar or in Chrome menu -> "Install app".
    - On mobile (Chrome Android), the browser will prompt to add to the home screen when criteria are met.
